@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phatty Editor — Moog Little Phatty & Slim Phatty MIDI Editor | Fabio Synth</title>
+<meta name="description" content="Free browser-based real-time editor for the Moog Little Phatty and Slim Phatty. Control oscillators, filter, envelopes and arpeggiator live over MIDI, directly from your browser. Part of the Fabio Synth toolset, alongside the Phatty preset librarian.">
+<meta name="keywords" content="moog, moog editor, moog little phatty, little phatty editor, editor little phatty, slim phatty, slim phatty editor, moog synthesizer editor, midi editor moog, Fabio Synth, Moog Little Phatty, Moog Slim Phatty, real-time synth editor">
+<meta name="author" content="Fabio Synth">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#1d242c">
+<!-- Open Graph / social preview -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fabio Synth">
+<meta property="og:title" content="Phatty Editor — Moog Little Phatty & Slim Phatty MIDI Editor">
+<meta property="og:description" content="Free browser-based real-time editor for the Moog Little Phatty and Slim Phatty: control every parameter live via MIDI.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Phatty Editor — Moog Little Phatty & Slim Phatty MIDI Editor">
+<meta name="twitter:description" content="Free browser-based real-time editor for the Moog Little Phatty and Slim Phatty, by Fabio Synth.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Phatty Editor",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any (runs in a web browser via Web MIDI)",
+  "description": "Browser-based real-time MIDI editor for the Moog Little Phatty and Slim Phatty synthesizers. Control oscillators, filter, envelopes and arpeggiator live.",
+  "creator": { "@type": "Person", "name": "Fabio Synth" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "keywords": "moog, moog editor, little phatty editor, slim phatty, Moog Little Phatty, Fabio Synth"
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#e6e9ec; --bg-1:#ebeef1; --bg-2:#f0f2f4;
+    --panel:#f6f7f9; --panel-2:#eef0f3; --panel-3:#eef1f4;
+    --ink:#1d242c; --ink-soft:#5c6673; --ink-dim:#8a93a0; --line:#d8dce1;
+    --knob:#242b34; --knob-ring:#48525f; --knob-ptr:#f2f4f6; --track:#ccd1d7;
+    --blue:#2f6fed; --blue-dim:#1c4fc0; --blue-glow:rgba(47,111,237,.30); --blue-tint:rgba(47,111,237,.10);
+    --green:#16a34a; --green-dim:#0d7a37; --green-glow:rgba(22,163,74,.28); --green-tint:rgba(22,163,74,.10);
+    --orange:#ff6a1a; --orange-dim:#d9540c; --orange-glow:rgba(255,106,26,.30); --orange-tint:rgba(255,106,26,.10);
+    --purple:#9333ea; --purple-dim:#6b21a8; --purple-glow:rgba(147,51,234,.30); --purple-tint:rgba(147,51,234,.10);
+    --teal:#0d9488; --teal-dim:#0f766e; --teal-glow:rgba(13,148,136,.28); --teal-tint:rgba(13,148,136,.10);
+    --pink:#db2777; --pink-dim:#a3155e; --pink-glow:rgba(219,39,119,.28); --pink-tint:rgba(219,39,119,.10);
+    --slate:#64748b; --slate-dim:#3f4a5a; --slate-glow:rgba(100,116,139,.28); --slate-tint:rgba(100,116,139,.08);
+    --signal:var(--orange); --signal-dim:var(--orange-dim); --signal-glow:var(--orange-glow);
+    --led:#22c55e; --led-off:#c3c9d0; --danger:#ff3355;
+    --font:'Barlow Semi Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; min-height:100vh; padding:26px 18px 44px;
+    font-family:var(--font); font-size:16px; color:var(--ink);
+    background:
+      radial-gradient(1100px 520px at 10% -10%, rgba(255,106,26,.06), transparent 60%),
+      radial-gradient(900px 460px at 105% 0%, rgba(34,197,94,.05), transparent 55%),
+      repeating-linear-gradient(90deg, rgba(20,26,33,.02) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(0deg, rgba(20,26,33,.02) 0 1px, transparent 1px 64px),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1) 40%, var(--bg-2));
+  }
+  .faceplate{
+    max-width:1320px; margin:0 auto; background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 0 0 1px rgba(255,255,255,.4), 0 24px 56px rgba(30,38,48,.14);
+    overflow:hidden;
+  }
+
+  /* --- barra superiore --- */
+  .topbar{display:flex; flex-wrap:wrap; gap:16px 32px; align-items:flex-end; justify-content:space-between;
+    padding:24px 28px 18px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(255,106,26,.05), transparent)}
+  h1{margin:0; font-size:1.95rem; font-weight:700; letter-spacing:.02em; line-height:1; color:var(--ink); display:flex; align-items:center; gap:12px}
+  h1::before{content:""; width:32px; height:32px; border-radius:50%; flex:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0%25' stop-color='%234b5563'/%3E%3Cstop offset='55%25' stop-color='%23242b34'/%3E%3Cstop offset='100%25' stop-color='%2312161b'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='%2312161b' stroke='%23555f6c' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='25' fill='url(%23g)'/%3E%3Cg stroke='%238a93a0' stroke-width='2.4' stroke-linecap='round'%3E%3Cline x1='32' y1='5' x2='32' y2='11'/%3E%3Cline x1='53' y1='11' x2='49' y2='15.5'/%3E%3Cline x1='59' y1='32' x2='53' y2='32'/%3E%3Cline x1='53' y1='53' x2='49' y2='48.5'/%3E%3Cline x1='11' y1='53' x2='15' y2='48.5'/%3E%3Cline x1='5' y1='32' x2='11' y2='32'/%3E%3Cline x1='11' y1='11' x2='15' y2='15.5'/%3E%3C/g%3E%3Cline x1='32' y1='32' x2='32' y2='14' stroke='%23f2f4f6' stroke-width='4.5' stroke-linecap='round' transform='rotate(-38 32 32)'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23555f6c'/%3E%3C/svg%3E");
+    background-size:cover; background-position:center;
+    box-shadow:0 4px 14px rgba(20,26,33,.18)}
+  .tagline{margin:6px 0 0; color:var(--ink-soft); font-size:.92rem; letter-spacing:.01em}
+  .conn{display:flex; flex-direction:column; gap:10px; align-items:flex-end}
+  .status{display:flex; align-items:center; gap:10px; margin:0; font-weight:600; font-family:var(--mono); font-size:.82rem; letter-spacing:.02em; text-transform:uppercase; color:var(--ink-soft)}
+  .led{width:10px; height:10px; border-radius:50%; background:var(--led-off); border:1px solid rgba(0,0,0,.15); flex:none; box-shadow:0 0 0 3px rgba(255,255,255,.5) inset}
+  .led.on{background:var(--led); box-shadow:0 0 10px 2px rgba(34,197,94,.6)}
+  .led.err{background:var(--danger); box-shadow:0 0 10px 2px rgba(255,51,85,.55)}
+  .ports{display:flex; flex-wrap:wrap; gap:10px}
+  .ports label{display:flex; flex-direction:column; gap:4px; font-size:.72rem; color:var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:.08em}
+  select{font:inherit; font-weight:500; color:var(--ink); background:var(--panel-3); border:1px solid var(--line); border-radius:7px; padding:7px 9px; min-width:120px; max-width:230px;
+    transition:border-color .15s, box-shadow .15s}
+  select:hover{border-color:var(--ink-dim)}
+  select:focus-visible{outline:none; border-color:var(--signal); box-shadow:0 0 0 3px var(--signal-glow)}
+  select.narrow{min-width:72px}
+  .notice{margin:0; padding:11px 28px; background:rgba(255,106,26,.09); border-bottom:1px solid var(--line); border-left:3px solid var(--signal); font-weight:500; color:#a04310; font-size:.92rem}
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+
+  .browser-note{background:transparent; border-bottom:1px solid var(--line)}
+  .browser-note-in{padding:7px 28px; display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--ink-dim); font-style:italic}
+  .browser-note-in svg{width:13px; height:13px; flex:none; color:var(--slate); opacity:.8}
+  .browser-note-in b{color:var(--ink-soft); font-weight:700; font-style:normal}
+
+  .contact-bar{display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:9px 28px; border-bottom:1px solid var(--line); background:var(--slate-tint)}
+  .contact-bar .contact-label{font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--slate-dim); margin-right:2px}
+  .contact-links{display:flex; align-items:center; gap:4px; margin-right:auto}
+  .contact-links a{display:flex; align-items:center; justify-content:center; width:29px; height:29px; border-radius:7px; color:var(--ink-soft); border:1px solid transparent; transition:color .15s, background .15s, border-color .15s}
+  .contact-links a svg{width:16px; height:16px}
+  .contact-links a:hover{color:var(--slate-dim); background:#fff; border-color:var(--line)}
+  .contact-links a:focus-visible{outline:none; box-shadow:0 0 0 2px var(--bg-1), 0 0 0 4px var(--slate)}
+  .support-prompt{font-size:.8rem; color:var(--ink-dim); white-space:nowrap}
+  .btn-support{display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:20px; font-weight:700; font-size:.82rem;
+    color:var(--slate-dim); background:transparent; border:1.5px solid var(--slate); text-decoration:none; white-space:nowrap; transition:background .15s, color .15s}
+  .btn-support svg{width:15px; height:15px; flex:none}
+  .btn-support:hover{background:var(--slate); color:#fff}
+  .btn-support:focus-visible{outline:none; box-shadow:0 0 0 2px var(--bg-1), 0 0 0 4px var(--slate)}
+
+  .qr-pop-wrap{position:relative}
+  .qr-pop-wrap summary{display:flex; align-items:center; justify-content:center; width:29px; height:29px; border-radius:7px;
+    color:var(--ink-soft); border:1px solid transparent; cursor:pointer; list-style:none; transition:color .15s, background .15s, border-color .15s}
+  .qr-pop-wrap summary::-webkit-details-marker{display:none}
+  .qr-pop-wrap summary svg{width:17px; height:17px}
+  .qr-pop-wrap summary:hover{color:var(--slate-dim); background:#fff; border-color:var(--line)}
+  .qr-pop-wrap summary:focus-visible{outline:none; box-shadow:0 0 0 2px var(--bg-1), 0 0 0 4px var(--slate)}
+  .qr-pop-wrap[open] summary{color:var(--slate-dim); background:#fff; border-color:var(--line)}
+  .qr-pop{position:absolute; top:calc(100% + 10px); right:0; z-index:30; width:164px; padding:14px;
+    background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 14px 34px rgba(20,26,33,.18); text-align:center}
+  .qr-pop .qr-code{display:block; width:100%; height:auto; border-radius:4px}
+  .qr-pop p{margin:9px 0 0; font-size:.72rem; line-height:1.3; color:var(--ink-dim)}
+  @media (max-width:560px){ .qr-pop{right:auto; left:50%; transform:translateX(-50%)} }
+
+  /* --- pannello --- */
+  .panel{display:grid; grid-template-columns:minmax(0,1fr); gap:20px; padding:20px 24px 22px}
+  .row{display:grid; gap:20px}
+  .row > *{min-width:0}
+  .row-a{grid-template-columns:396px 1fr}
+  .row-b{grid-template-columns:396px 1fr 1fr}
+  .group{position:relative; background:#fbfcfd; border:1px solid var(--line); border-left:3px solid var(--accent, var(--signal)); border-radius:10px; padding:0 0 18px; overflow:hidden;
+    box-shadow:0 1px 2px rgba(30,38,48,.04), 0 6px 18px rgba(30,38,48,.05);
+    transition:box-shadow .2s}
+  .group:hover{box-shadow:0 2px 4px rgba(30,38,48,.05), 0 10px 26px rgba(30,38,48,.08)}
+  .group > h2{position:static; margin:0 0 16px; padding:11px 18px; display:flex; align-items:center; gap:8px;
+    background:var(--accent-tint, var(--orange-tint)); border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--accent, var(--signal)); line-height:1.3}
+  .group > h2::before{content:""; width:6px; height:6px; border-radius:50%; flex:none; background:var(--accent, var(--signal)); box-shadow:0 0 6px 1px var(--accent-glow, var(--signal-glow))}
+  .group.accent-blue{--accent:var(--blue); --accent-dim:var(--blue-dim); --accent-glow:var(--blue-glow); --accent-tint:var(--blue-tint)}
+  .group.accent-green{--accent:var(--green); --accent-dim:var(--green-dim); --accent-glow:var(--green-glow); --accent-tint:var(--green-tint)}
+  .group.accent-orange{--accent:var(--orange); --accent-dim:var(--orange-dim); --accent-glow:var(--orange-glow); --accent-tint:var(--orange-tint)}
+  .group.accent-purple{--accent:var(--purple); --accent-dim:var(--purple-dim); --accent-glow:var(--purple-glow); --accent-tint:var(--purple-tint)}
+  .group.accent-teal{--accent:var(--teal); --accent-dim:var(--teal-dim); --accent-glow:var(--teal-glow); --accent-tint:var(--teal-tint)}
+  .group.accent-pink{--accent:var(--pink); --accent-dim:var(--pink-dim); --accent-glow:var(--pink-glow); --accent-tint:var(--pink-tint)}
+  .group.accent-purple .subs{justify-content:center}
+  .group.accent-purple .sub{flex:0 0 auto; border-left:0; padding:0}
+  .group.accent-blue .ctls{grid-template-columns:repeat(4,minmax(72px,1fr))}
+  .group.accent-blue .seg{gap:4px}
+  .group.accent-blue .seg button{padding:5px 7px; font-size:.8rem}
+  .group .subs{padding:0 18px}
+  .group > svg.env-graph{display:block; width:calc(100% - 36px); margin:0 18px 14px}
+  .subs{display:flex; flex-wrap:wrap; gap:16px 0}
+  .sub{flex:1 1 auto; padding:0 18px; border-left:1px solid var(--line)}
+  .sub:first-child{border-left:0; padding-left:0}
+  .sub:last-child{padding-right:0}
+  .sub > h3{margin:0 0 12px; font-size:.72rem; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.1em}
+  .ctls{display:grid; grid-template-columns:repeat(var(--cols,4),72px); gap:16px 8px; align-items:start}
+
+  /* --- manopole --- */
+  .knob{display:grid; justify-items:center; gap:5px; width:72px}
+  .knob-body{width:72px; height:72px; border-radius:50%; cursor:ns-resize; touch-action:none; user-select:none; -webkit-user-select:none;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
+  .knob-body svg{display:block}
+  .knob-body:focus-visible{outline:2px solid var(--signal); outline-offset:3px; border-radius:50%}
+  .knob-body.active .cap{stroke:var(--accent, var(--signal)); filter:drop-shadow(0 0 5px var(--accent-glow, var(--signal-glow)))}
+  .trk{fill:none; stroke:var(--track); stroke-width:4.5; stroke-linecap:round}
+  .val{fill:none; stroke:var(--accent, var(--signal)); stroke-width:4.5; stroke-linecap:round; filter:drop-shadow(0 0 3px var(--accent-glow, var(--signal-glow)))}
+  .cap{fill:var(--knob); stroke:var(--knob-ring); stroke-width:2}
+  .ptr line{stroke:var(--knob-ptr); stroke-width:3.2; stroke-linecap:round}
+  .knob.wide{grid-column:span 2; width:auto}
+  .knob.wide .knob-body{width:104px; height:104px}
+  .lg path{fill:none; stroke:var(--ink-dim); stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .lg.hit path{stroke:var(--accent, var(--signal)); stroke-width:2.3}
+  .tick{stroke:var(--ink-dim); stroke-width:1.4; stroke-linecap:round}
+  .zone{font-family:var(--mono); font-size:.76rem; font-weight:600; color:var(--accent-dim, var(--signal-dim)); min-height:1.1em; letter-spacing:.02em}
+  .lbl{font-weight:600; font-size:.9rem; text-align:center; line-height:1.15; color:var(--ink)}
+  .num{font-family:var(--mono); font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; color:var(--ink-soft); font-size:.82rem; min-height:1.1em}
+
+  /* --- selettori a scatti --- */
+  .choice{grid-column:1 / -1; display:grid; gap:6px; min-width:0}
+  .seg{display:flex; flex-wrap:wrap; gap:6px}
+  .seg button{font:inherit; font-weight:600; font-size:.86rem; color:var(--ink-soft); background:var(--panel-3); border:1px solid var(--line); border-radius:7px;
+    padding:5px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; min-height:30px; white-space:nowrap;
+    transition:background .15s, border-color .15s, color .15s}
+  .seg button::before{content:""; width:6px; height:6px; border-radius:50%; background:transparent; box-shadow:none; flex:none; transition:background .15s, box-shadow .15s}
+  .seg button:hover{border-color:var(--ink-dim); color:var(--ink)}
+  .seg button:focus-visible{outline:none; box-shadow:0 0 0 2px var(--bg-1), 0 0 0 4px var(--signal)}
+  .seg button[aria-checked="true"]{background:var(--accent-tint, var(--orange-tint)); border-color:var(--accent-dim, var(--signal-dim)); color:var(--ink)}
+  .seg button[aria-checked="true"]::before{background:var(--accent, var(--signal)); box-shadow:0 0 6px 1px var(--accent-glow, var(--signal-glow))}
+
+  /* --- grafico envelope --- */
+  .env-graph{display:block; width:100%; height:96px; margin:0 0 14px; background:var(--panel-3); border:1px solid var(--line); border-radius:6px}
+  .env-graph .eg-grid{stroke:rgba(20,26,33,.06); stroke-width:1}
+  .env-graph .eg-base{stroke:rgba(20,26,33,.14); stroke-width:1}
+  .env-graph .eg-stop-a{stop-color:var(--accent, var(--signal)); stop-opacity:.32}
+  .env-graph .eg-stop-b{stop-color:var(--accent, var(--signal)); stop-opacity:0}
+  .env-graph polygon{stroke:none}
+  .env-graph polyline{fill:none; stroke:var(--accent, var(--signal)); stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke;
+    filter:drop-shadow(0 0 3px var(--accent-glow, var(--signal-glow)))}
+  .env-graph .eg-pt{display:none}
+
+
+  /* --- controlli aggiuntivi --- */
+  input[type=number],input[type=text]{font:inherit; font-weight:500; color:var(--ink); background:var(--panel-3); border:1px solid var(--line); border-radius:7px; padding:6px 9px}
+  input:focus-visible{outline:none; border-color:var(--signal); box-shadow:0 0 0 3px var(--signal-glow)}
+  .btn{font:inherit; font-weight:700; font-size:.92rem; letter-spacing:.02em; color:#fff; background:var(--signal); border:1px solid var(--signal); border-radius:7px; padding:8px 16px; cursor:pointer;
+    transition:filter .15s, transform .05s}
+  .btn:hover{filter:brightness(1.12)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.35; cursor:not-allowed; filter:none}
+  .btn.big{font-size:1.25rem; line-height:1; padding:7px 16px; min-width:48px}
+  .btn.small{padding:4px 10px; font-size:.86rem}
+  .choice select{width:100%; max-width:260px}
+  .preset-row{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:flex-start; justify-content:space-between}
+  .preset-row .pc{flex:1 1 auto}
+  #btnInitPreset{margin-left:38px}
+  .lib-mini{position:relative; flex:0 1 300px; min-width:220px; margin:2px 18px 18px 0}
+  .lib-toggle{width:100%; display:flex; align-items:center; gap:8px; justify-content:flex-start}
+  .lib-toggle svg{flex:none; width:16px; height:16px}
+  .lib-toggle svg.lib-toggle-chev{width:13px; height:13px}
+  .lib-toggle-label{font-weight:700}
+  .lib-toggle .lib-count{margin-left:auto; font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.04em; color:var(--ink-dim); white-space:nowrap}
+  .lib-toggle-chev{transition:transform .15s}
+  .lib-mini[data-open="true"] .lib-toggle-chev{transform:rotate(180deg)}
+  .lib-mini[data-open="true"] .lib-toggle{border-color:var(--accent, var(--pink)); color:var(--ink); background:rgba(20,26,33,.05)}
+  .lib-dropdown{position:fixed; z-index:200; width:min(800px, 96vw); max-height:min(70vh, 460px); overflow-x:hidden; overflow-y:auto;
+    background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 14px 34px rgba(20,26,33,.22); padding:14px}
+  .lib-dropdown .lib-toprow{margin-bottom:10px}
+  .lib-bulk-row{display:flex; gap:8px; margin-bottom:10px}
+  .btn.ghost.danger{color:var(--red,#c0392b); border-color:var(--red-dim,#e0a6a0)}
+  .btn.ghost.danger:hover{background:rgba(192,57,43,.08); border-color:var(--red,#c0392b); color:var(--red,#c0392b)}
+  .lib-dropdown .tblwrap{max-height:none; overflow:visible; border:0}
+  .lib-dropdown .lib th{position:static}
+  .lib-dropdown .lib td.name input{min-width:90px}
+  .lib-dropdown .lib .acts{gap:6px}
+  .lib-dropdown .lib .acts .btn{padding:4px 8px; font-size:.78rem}
+  .pc{display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; padding:2px 18px 18px}
+  #btnPrgGo{background:transparent; color:var(--pink); border:1.5px solid var(--pink); box-shadow:0 0 0 3px var(--pink-tint)}
+  #btnPrgGo:hover{background:var(--pink-tint); filter:none}
+  .btn.red{background:#c0392b; border-color:#c0392b; color:#fff}
+  .btn.red:hover{background:#a5301f; border-color:#a5301f; filter:none}
+  .pc .field{display:flex; flex-direction:column; gap:4px; font-size:.72rem; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.08em}
+  .pc input[type=number]{width:4.6em; font-family:var(--mono); font-size:1.35rem; text-align:center; font-variant-numeric:tabular-nums}
+  .hint{margin:8px 0 0; color:var(--ink-dim); font-size:.85rem; max-width:46ch}
+  .snaprow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px}
+  .snaprow input[type=text]{width:12em}
+  .snaprow select{min-width:160px}
+
+  details.adv{background:rgba(20,26,33,.015); border:1px solid var(--line); border-radius:8px; padding:0 20px 22px}
+  details.adv > summary{cursor:pointer; padding:14px 0; font-family:var(--mono); font-weight:700; font-size:.86rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); list-style:none; display:flex; align-items:center; gap:10px}
+  details.adv > summary::-webkit-details-marker{display:none}
+  details.adv > summary::before{content:"▸"; color:var(--signal); font-size:.8rem; transition:transform .15s}
+  details.adv[open] > summary::before{transform:rotate(90deg)}
+  details.adv[open] > summary{border-bottom:1px solid var(--line); margin-bottom:24px; color:var(--ink)}
+  .adv-rows{display:grid; gap:20px}
+  .row-c{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .row-d{grid-template-columns:minmax(0,1fr)}
+  /* Nella sezione avanzata le colonne dei controlli si allargano fino a riempire
+     tutta la larghezza disponibile del gruppo, invece di restare bloccate a 72px:
+     così i selettori a scatti non vanno più a capo inutilmente e lo spazio
+     orizzontale della card viene sfruttato per intero. */
+  .adv-rows .ctls{grid-template-columns:repeat(var(--cols,4),minmax(64px,1fr)); gap:16px 14px}
+  .adv-rows .group{padding-top:28px}
+  .adv-rows .sub{padding:0 16px}
+
+  /* --- tastiera virtuale --- */
+  .kbctl{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin-bottom:12px; color:var(--ink-soft)}
+  .kbctl .grp{display:flex; align-items:center; gap:8px; font-weight:600}
+  .kbctl output{font-family:var(--mono); font-variant-numeric:tabular-nums; min-width:2.4em; display:inline-block}
+  .kbctl label.chk{display:flex; gap:7px; align-items:center; font-weight:600}
+  .pianowrap{overflow-x:auto}
+  .piano{position:relative; height:132px; min-width:560px; user-select:none; -webkit-user-select:none; touch-action:none}
+  .wk{position:absolute; top:0; height:100%; padding:0 0 5px; font:inherit; font-size:.78rem; color:#5c6673; background:#fbfcfd; border:1px solid #b9c0c8; border-radius:0 0 4px 4px; cursor:pointer; display:flex; align-items:flex-end; justify-content:center}
+  .wk.down{background:#ffd9bf}
+  .bk{position:absolute; top:0; height:62%; z-index:2; padding:0; background:#20262e; border:1px solid #000; border-radius:0 0 3px 3px; cursor:pointer}
+  .bk.down{background:var(--signal)}
+  .wk:focus-visible,.bk:focus-visible{outline:2px solid var(--signal); outline-offset:1px; z-index:3}
+
+  /* --- barra inferiore --- */
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center; padding:18px 28px; border-top:1px solid var(--line); background:linear-gradient(0deg, rgba(255,106,26,.04), transparent)}
+  .btn.ghost{color:var(--ink-soft); background:transparent; border:1px solid var(--line)}
+  .btn.ghost:hover{background:rgba(20,26,33,.05); color:var(--ink); border-color:var(--ink-dim); filter:none}
+  .btn:focus-visible{outline:none; box-shadow:0 0 0 2px var(--bg-1), 0 0 0 4px var(--signal)}
+  .msg{margin:0 0 0 auto; color:var(--ink-dim); font-weight:500; font-size:.88rem; max-width:44ch}
+  .log{margin:0; padding:0 28px 22px}
+  .log summary{cursor:pointer; font-family:var(--mono); font-weight:700; font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); padding:6px 0; list-style:none}
+  .log summary::-webkit-details-marker{display:none}
+  .log summary::before{content:"▸ "; color:var(--signal)}
+  .log[open] summary::before{content:"▾ "}
+  .log pre{margin:8px 0 0; height:170px; overflow:auto; padding:12px; background:#12161b; color:#3ee07a; border:1px solid var(--line);
+    font:12.5px/1.45 var(--mono); border-radius:4px; white-space:pre}
+
+  .lib-wrap{margin-top:4px}
+  .lib-toprow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px}
+  .lib-toprow input[type=text]{flex:1 1 160px; min-width:140px; max-width:22em}
+  .lib-toprow .spacer{flex:1}
+  .lib-count{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.05em; color:var(--ink-dim); white-space:nowrap}
+  .tblwrap{overflow-x:auto; overflow-y:auto; max-height:372px; border:1px solid var(--line); border-radius:8px}
+  table.lib{width:100%; border-collapse:collapse; min-width:560px; font-size:.9rem}
+  .lib th{position:sticky; top:0; text-align:left; padding:10px 12px; background:var(--panel-3); color:var(--ink-dim); font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; border-bottom:1px solid var(--line)}
+  .lib td{padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
+  .lib tr:last-child td{border-bottom:0}
+  .lib tbody tr:nth-child(even) td{background:rgba(20,26,33,.014)}
+  .lib tr:hover td{background:var(--blue-tint)}
+  .lib td.nowrap{white-space:nowrap}
+  .lib td.name input{width:100%; min-width:120px; border-color:transparent; background:transparent; padding:4px 6px; font-weight:600}
+  .lib td.name input:hover,.lib td.name input:focus{border-color:var(--line); background:#fff}
+  .pill{display:inline-block; padding:2px 10px; border-radius:999px; border:1px solid var(--line); font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap}
+  .pill.lp{background:var(--blue-tint); border-color:var(--blue); color:var(--blue-dim)}
+  .pill.sp{background:var(--teal-tint); border-color:var(--teal); color:var(--teal-dim)}
+  .lib .acts{display:flex; gap:4px; flex-wrap:nowrap}
+  .lib .empty{padding:26px 12px; text-align:center; color:var(--ink-dim)}
+
+  .credit{margin:18px 28px 0; padding:14px 0 20px; border-top:1px solid var(--line); text-align:center;
+    font-size:.78rem; color:var(--ink-dim); letter-spacing:.01em}
+  .credit strong{color:var(--ink-soft); font-weight:700}
+  @media (max-width:1180px){
+    .row-a{grid-template-columns:minmax(0,1fr)}
+    .row-b{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .row-b .group:first-child{grid-column:1 / -1}
+  }
+  @media (max-width:760px){ .row-b{grid-template-columns:minmax(0,1fr)} }
+  @media (max-width:640px){
+    .lib-mini{flex:1 1 100%; margin-right:0}
+  }
+  @media (max-width:560px){
+    body{padding:10px 8px 30px}
+    .panel{padding:20px 12px 14px}
+    .topbar,.toolbar,.log,.contact-bar,.browser-note-in{padding-left:14px; padding-right:14px}
+    .sub{padding:0 10px}
+    .ctls{grid-template-columns:repeat(auto-fill,72px)}
+    .adv-rows .ctls{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+    .msg{margin-left:0}
+  }
+</style>
+</head>
+<body>
+<main class="faceplate">
+  <header class="topbar">
+    <div>
+      <h1>Phatty Editor</h1>
+      <p class="tagline">Virtual panel for Moog Little Phatty and Slim Phatty, in real time via MIDI</p>
+    </div>
+    <div class="conn">
+      <p class="status" role="status"><span class="led" id="led"></span><span id="statusText">Starting MIDI…</span></p>
+      <div class="ports">
+        <label>Model <select id="selModel"></select></label>
+        <label>MIDI In <select id="selIn"></select></label>
+        <label>MIDI Out <select id="selOut"></select></label>
+        <label>Out channel <select id="selChOut" class="narrow"></select></label>
+        <label>In channel <select id="selChIn" class="narrow"></select></label>
+      </div>
+    </div>
+  </header>
+
+  <nav class="contact-bar" aria-label="Contact and support">
+    <span class="contact-label">Fabio Synth</span>
+    <div class="contact-links">
+      <a href="https://fabiopiras.synthonia.com/" target="_blank" rel="noopener" title="Sound library">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.6 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.6-4-9s1.5-6.5 4-9z"/></svg>
+        <span class="sr-only">Sound library</span>
+      </a>
+      <a href="https://www.youtube.com/@FabioSynth" target="_blank" rel="noopener" title="YouTube">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.5" width="20" height="13" rx="4"/><path d="M10.2 9.3l5.4 2.7-5.4 2.7V9.3z" fill="currentColor" stroke="none"/></svg>
+        <span class="sr-only">YouTube</span>
+      </a>
+      <a href="https://www.facebook.com/fabio.synth/" target="_blank" rel="noopener" title="Facebook">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M13.7 16.2v-4.9h1.7l.3-2.3h-2V7.6c0-.6.3-1 1.1-1h1V4.7c-.3 0-1-.1-1.8-.1-1.8 0-3 1.1-3 3.1v1.7H9.3v2.3h1.7v4.9"/></svg>
+        <span class="sr-only">Facebook</span>
+      </a>
+      <a href="https://www.instagram.com/fabiosynth/" target="_blank" rel="noopener" title="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17" cy="7" r="1" fill="currentColor" stroke="none"/></svg>
+        <span class="sr-only">Instagram</span>
+      </a>
+      <a href="mailto:fabiosynth.lab@gmail.com" title="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><path d="M4 7.2l8 6 8-6"/></svg>
+        <span class="sr-only">Email</span>
+      </a>
+    </div>
+    <span class="support-prompt">Enjoying the editor?</span>
+    <a class="btn-support" href="https://www.paypal.com/paypalme/fabiosynth" target="_blank" rel="noopener" title="Buy me a coffee on PayPal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h12v5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V9z"/><path d="M16.5 10h1.3a2.4 2.4 0 0 1 0 4.8h-1.3"/><path d="M8 3c0 1-1 1-1 2M12 3c0 1-1 1-1 2"/></svg>
+      Buy me a coffee
+    </a>
+    <details class="qr-pop-wrap">
+      <summary title="Scan to donate" aria-label="Show PayPal QR code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M8 20H5a1 1 0 0 1-1-1v-3"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      </summary>
+      <div class="qr-pop">
+        <svg class="qr-code" viewBox="0 0 31 31" role="img" aria-label="QR code linking to PayPal.me/fabiosynth">
+          <rect width="31" height="31" fill="#fff"/>
+          <path d="M1,1H2V2H1zM2,1H3V2H2zM3,1H4V2H3zM4,1H5V2H4zM5,1H6V2H5zM6,1H7V2H6zM7,1H8V2H7zM13,1H14V2H13zM15,1H16V2H15zM19,1H20V2H19zM21,1H22V2H21zM23,1H24V2H23zM24,1H25V2H24zM25,1H26V2H25zM26,1H27V2H26zM27,1H28V2H27zM28,1H29V2H28zM29,1H30V2H29zM1,2H2V3H1zM7,2H8V3H7zM9,2H10V3H9zM10,2H11V3H10zM11,2H12V3H11zM13,2H14V3H13zM14,2H15V3H14zM15,2H16V3H15zM17,2H18V3H17zM18,2H19V3H18zM21,2H22V3H21zM23,2H24V3H23zM29,2H30V3H29zM1,3H2V4H1zM3,3H4V4H3zM4,3H5V4H4zM5,3H6V4H5zM7,3H8V4H7zM9,3H10V4H9zM11,3H12V4H11zM15,3H16V4H15zM16,3H17V4H16zM21,3H22V4H21zM23,3H24V4H23zM25,3H26V4H25zM26,3H27V4H26zM27,3H28V4H27zM29,3H30V4H29zM1,4H2V5H1zM3,4H4V5H3zM4,4H5V5H4zM5,4H6V5H5zM7,4H8V5H7zM9,4H10V5H9zM12,4H13V5H12zM14,4H15V5H14zM16,4H17V5H16zM17,4H18V5H17zM18,4H19V5H18zM20,4H21V5H20zM21,4H22V5H21zM23,4H24V5H23zM25,4H26V5H25zM26,4H27V5H26zM27,4H28V5H27zM29,4H30V5H29zM1,5H2V6H1zM3,5H4V6H3zM4,5H5V6H4zM5,5H6V6H5zM7,5H8V6H7zM10,5H11V6H10zM15,5H16V6H15zM17,5H18V6H17zM20,5H21V6H20zM21,5H22V6H21zM23,5H24V6H23zM25,5H26V6H25zM26,5H27V6H26zM27,5H28V6H27zM29,5H30V6H29zM1,6H2V7H1zM7,6H8V7H7zM11,6H12V7H11zM13,6H14V7H13zM14,6H15V7H14zM19,6H20V7H19zM21,6H22V7H21zM23,6H24V7H23zM29,6H30V7H29zM1,7H2V8H1zM2,7H3V8H2zM3,7H4V8H3zM4,7H5V8H4zM5,7H6V8H5zM6,7H7V8H6zM7,7H8V8H7zM9,7H10V8H9zM11,7H12V8H11zM13,7H14V8H13zM15,7H16V8H15zM17,7H18V8H17zM19,7H20V8H19zM21,7H22V8H21zM23,7H24V8H23zM24,7H25V8H24zM25,7H26V8H25zM26,7H27V8H26zM27,7H28V8H27zM28,7H29V8H28zM29,7H30V8H29zM9,8H10V9H9zM10,8H11V9H10zM12,8H13V9H12zM13,8H14V9H13zM15,8H16V9H15zM16,8H17V9H16zM19,8H20V9H19zM20,8H21V9H20zM21,8H22V9H21zM1,9H2V10H1zM7,9H8V10H7zM9,9H10V10H9zM12,9H13V10H12zM14,9H15V10H14zM15,9H16V10H15zM16,9H17V10H16zM18,9H19V10H18zM20,9H21V10H20zM22,9H23V10H22zM23,9H24V10H23zM26,9H27V10H26zM27,9H28V10H27zM28,9H29V10H28zM1,10H2V11H1zM3,10H4V11H3zM4,10H5V11H4zM5,10H6V11H5zM8,10H9V11H8zM10,10H11V11H10zM11,10H12V11H11zM12,10H13V11H12zM14,10H15V11H14zM16,10H17V11H16zM19,10H20V11H19zM20,10H21V11H20zM22,10H23V11H22zM24,10H25V11H24zM25,10H26V11H25zM27,10H28V11H27zM28,10H29V11H28zM1,11H2V12H1zM2,11H3V12H2zM6,11H7V12H6zM7,11H8V12H7zM9,11H10V12H9zM10,11H11V12H10zM11,11H12V12H11zM12,11H13V12H12zM16,11H17V12H16zM17,11H18V12H17zM19,11H20V12H19zM21,11H22V12H21zM22,11H23V12H22zM4,12H5V13H4zM5,12H6V13H5zM8,12H9V13H8zM10,12H11V13H10zM15,12H16V13H15zM20,12H21V13H20zM24,12H25V13H24zM26,12H27V13H26zM2,13H3V14H2zM4,13H5V14H4zM6,13H7V14H6zM7,13H8V14H7zM8,13H9V14H8zM9,13H10V14H9zM10,13H11V14H10zM16,13H17V14H16zM17,13H18V14H17zM20,13H21V14H20zM21,13H22V14H21zM23,13H24V14H23zM24,13H25V14H24zM29,13H30V14H29zM2,14H3V15H2zM3,14H4V15H3zM4,14H5V15H4zM10,14H11V15H10zM11,14H12V15H11zM12,14H13V15H12zM14,14H15V15H14zM16,14H17V15H16zM17,14H18V15H17zM18,14H19V15H18zM20,14H21V15H20zM21,14H22V15H21zM23,14H24V15H23zM25,14H26V15H25zM28,14H29V15H28zM29,14H30V15H29zM1,15H2V16H1zM2,15H3V16H2zM3,15H4V16H3zM5,15H6V16H5zM6,15H7V16H6zM7,15H8V16H7zM10,15H11V16H10zM12,15H13V16H12zM13,15H14V16H13zM14,15H15V16H14zM15,15H16V16H15zM16,15H17V16H16zM19,15H20V16H19zM22,15H23V16H22zM24,15H25V16H24zM26,15H27V16H26zM27,15H28V16H27zM4,16H5V17H4zM5,16H6V17H5zM6,16H7V17H6zM8,16H9V17H8zM9,16H10V17H9zM10,16H11V17H10zM11,16H12V17H11zM13,16H14V17H13zM15,16H16V17H15zM16,16H17V17H16zM20,16H21V17H20zM22,16H23V17H22zM23,16H24V17H23zM24,16H25V17H24zM25,16H26V17H25zM27,16H28V17H27zM29,16H30V17H29zM4,17H5V18H4zM7,17H8V18H7zM13,17H14V18H13zM14,17H15V18H14zM15,17H16V18H15zM16,17H17V18H16zM18,17H19V18H18zM20,17H21V18H20zM24,17H25V18H24zM26,17H27V18H26zM27,17H28V18H27zM1,18H2V19H1zM3,18H4V19H3zM4,18H5V19H4zM6,18H7V19H6zM9,18H10V19H9zM11,18H12V19H11zM12,18H13V19H12zM13,18H14V19H13zM15,18H16V19H15zM16,18H17V19H16zM17,18H18V19H17zM20,18H21V19H20zM22,18H23V19H22zM23,18H24V19H23zM24,18H25V19H24zM25,18H26V19H25zM27,18H28V19H27zM28,18H29V19H28zM29,18H30V19H29zM1,19H2V20H1zM2,19H3V20H2zM6,19H7V20H6zM7,19H8V20H7zM8,19H9V20H8zM12,19H13V20H12zM13,19H14V20H13zM14,19H15V20H14zM16,19H17V20H16zM18,19H19V20H18zM19,19H20V20H19zM20,19H21V20H20zM21,19H22V20H21zM22,19H23V20H22zM26,19H27V20H26zM29,19H30V20H29zM1,20H2V21H1zM3,20H4V21H3zM6,20H7V21H6zM12,20H13V21H12zM16,20H17V21H16zM17,20H18V21H17zM19,20H20V21H19zM21,20H22V21H21zM22,20H23V21H22zM24,20H25V21H24zM25,20H26V21H25zM1,21H2V22H1zM3,21H4V22H3zM4,21H5V22H4zM5,21H6V22H5zM6,21H7V22H6zM7,21H8V22H7zM8,21H9V22H8zM9,21H10V22H9zM10,21H11V22H10zM12,21H13V22H12zM14,21H15V22H14zM15,21H16V22H15zM18,21H19V22H18zM20,21H21V22H20zM21,21H22V22H21zM22,21H23V22H22zM23,21H24V22H23zM24,21H25V22H24zM25,21H26V22H25zM27,21H28V22H27zM28,21H29V22H28zM29,21H30V22H29zM9,22H10V23H9zM11,22H12V23H11zM12,22H13V23H12zM13,22H14V23H13zM14,22H15V23H14zM15,22H16V23H15zM16,22H17V23H16zM17,22H18V23H17zM19,22H20V23H19zM21,22H22V23H21zM25,22H26V23H25zM26,22H27V23H26zM1,23H2V24H1zM2,23H3V24H2zM3,23H4V24H3zM4,23H5V24H4zM5,23H6V24H5zM6,23H7V24H6zM7,23H8V24H7zM16,23H17V24H16zM17,23H18V24H17zM19,23H20V24H19zM20,23H21V24H20zM21,23H22V24H21zM23,23H24V24H23zM25,23H26V24H25zM26,23H27V24H26zM27,23H28V24H27zM1,24H2V25H1zM7,24H8V25H7zM10,24H11V25H10zM11,24H12V25H11zM12,24H13V25H12zM13,24H14V25H13zM17,24H18V25H17zM20,24H21V25H20zM21,24H22V25H21zM25,24H26V25H25zM29,24H30V25H29zM1,25H2V26H1zM3,25H4V26H3zM4,25H5V26H4zM5,25H6V26H5zM7,25H8V26H7zM10,25H11V26H10zM12,25H13V26H12zM14,25H15V26H14zM15,25H16V26H15zM16,25H17V26H16zM17,25H18V26H17zM20,25H21V26H20zM21,25H22V26H21zM22,25H23V26H22zM23,25H24V26H23zM24,25H25V26H24zM25,25H26V26H25zM26,25H27V26H26zM28,25H29V26H28zM1,26H2V27H1zM3,26H4V27H3zM4,26H5V27H4zM5,26H6V27H5zM7,26H8V27H7zM10,26H11V27H10zM16,26H17V27H16zM17,26H18V27H17zM18,26H19V27H18zM19,26H20V27H19zM20,26H21V27H20zM22,26H23V27H22zM24,26H25V27H24zM26,26H27V27H26zM27,26H28V27H27zM29,26H30V27H29zM1,27H2V28H1zM3,27H4V28H3zM4,27H5V28H4zM5,27H6V28H5zM7,27H8V28H7zM10,27H11V28H10zM11,27H12V28H11zM14,27H15V28H14zM16,27H17V28H16zM17,27H18V28H17zM23,27H24V28H23zM24,27H25V28H24zM25,27H26V28H25zM26,27H27V28H26zM27,27H28V28H27zM28,27H29V28H28zM1,28H2V29H1zM7,28H8V29H7zM13,28H14V29H13zM19,28H20V29H19zM23,28H24V29H23zM24,28H25V29H24zM26,28H27V29H26zM27,28H28V29H27zM29,28H30V29H29zM1,29H2V30H1zM2,29H3V30H2zM3,29H4V30H3zM4,29H5V30H4zM5,29H6V30H5zM6,29H7V30H6zM7,29H8V30H7zM9,29H10V30H9zM12,29H13V30H12zM13,29H14V30H13zM18,29H19V30H18zM20,29H21V30H20zM22,29H23V30H22zM24,29H25V30H24zM25,29H26V30H25zM26,29H27V30H26zM27,29H28V30H27z" fill="#161b1f"/>
+        </svg>
+        <p>Scan to donate via PayPal</p>
+      </div>
+    </details>
+  </nav>
+
+  <div class="browser-note">
+    <div class="browser-note-in">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="15.5" r=".1"/></svg>
+      <span>Uses Web MIDI: works in <b>Chrome</b>, <b>Edge</b>, <b>Opera</b> or <b>Brave</b> (desktop and Android), and in <b>Firefox</b> on desktop. <b>Safari</b> doesn't support Web MIDI yet.</span>
+    </div>
+  </div>
+
+  <p class="notice" id="portHint" hidden>No port with a Moog-like name found. On Windows the Slim Phatty often appears as “USB Audio Device”: choose the port manually from the MIDI In and MIDI Out menus. It will be remembered next time.</p>
+
+  <section class="group accent-pink" style="margin:24px 24px 0" aria-labelledby="h-preset">
+    <h2 id="h-preset">Preset</h2>
+    <div class="preset-row">
+      <div class="pc">
+        <button class="btn big ghost" id="btnPrgPrev" type="button" aria-label="Previous preset">−</button>
+        <label class="field"><span>Preset #</span><input type="number" id="prgNum" min="0" max="99" value="0"></label>
+        <button class="btn big ghost" id="btnPrgNext" type="button" aria-label="Next preset">+</button>
+        <button class="btn" id="btnPrgGo" type="button">Recall on synth</button>
+        <button class="btn red" id="btnInitPreset" type="button">INIT Preset</button>
+      </div>
+      <div class="lib-mini" id="libMini">
+        <button class="btn ghost lib-toggle" id="libToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="libDropdown">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+          <span class="lib-toggle-label">Preset library</span>
+          <span class="lib-count" id="libCount"></span>
+          <svg class="lib-toggle-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="panel" id="panel"></div>
+
+  <details class="adv" style="margin:0 24px 26px" id="advSection">
+    <summary>Advanced parameters (global and arpeggiator)</summary>
+    <div class="adv-rows" id="advPanel"></div>
+  </details>
+
+
+  <footer class="toolbar">
+    <button class="btn" id="btnSendAll" type="button">Send all to synth</button>
+    <button class="btn ghost" id="btnExport" type="button">Export preset</button>
+    <button class="btn ghost" id="btnImport" type="button">Import preset</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <p class="msg" id="msg" aria-live="polite">This app cannot poll the synth’s state over plain MIDI CC: move a control on the synth to mirror it here, or use “Import from synth” / “Send all”.</p>
+  </footer>
+
+  <details class="log">
+    <summary>MIDI monitor</summary>
+    <pre id="logBox" aria-label="Ultimi messaggi MIDI"></pre>
+  </details>
+
+  <p class="credit">Phatty Editor — made by <strong>Fabio Synth</strong>.</p>
+</main>
+
+<div class="lib-dropdown" id="libDropdown" hidden>
+  <div class="lib-wrap">
+    <div class="lib-toprow">
+      <input type="text" id="libName" placeholder="Name this preset…" maxlength="60">
+      <button class="btn ghost small" id="btnLibSave" type="button">Save current as new</button>
+      <input type="text" id="libSearch" placeholder="Search presets…" aria-label="Search presets by name">
+    </div>
+    <div class="lib-bulk-row">
+      <button class="btn ghost small" id="btnLibExportAll" type="button">Export all</button>
+      <button class="btn ghost small" id="btnLibImportAll" type="button">Import</button>
+      <button class="btn ghost small danger" id="btnLibDeleteAll" type="button">Delete all</button>
+      <input type="file" id="fileLibImport" accept="application/json,.json" multiple hidden>
+    </div>
+    <div class="tblwrap">
+      <table class="lib">
+        <thead><tr><th>Name</th><th>Model</th><th>Saved</th><th>Actions</th></tr></thead>
+        <tbody id="libBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ------------------------------------------------------------------
+   Definizione dei parametri (CC dal manuale LP Stage II, pagg. 54-57)
+------------------------------------------------------------------- */
+// Ottave (CC 74 e 75). Il manuale del Little Phatty Stage II indica 0 per il 16', ma il valore che
+// funziona davvero è 16, come nella tabella del manuale precedente del Little Phatty e in quella dello Slim Phatty.
+const OCT   = [{l:"16'",v:16},{l:"8'",v:32},{l:"4'",v:48},{l:"2'",v:64}];
+const MODELS = {lp:{name:'Little Phatty', device:'Moog Little Phatty', file:'little_phatty_preset.json'},
+                 sp:{name:'Slim Phatty',   device:'Moog Slim Phatty',   file:'slim_phatty_preset.json'}};
+const OFFON = [{l:'Off',v:0},{l:'On',v:64}];
+const PB_STEPS = [{l:'0 st',v:0},{l:'2 st',v:21},{l:'3 st',v:42},{l:'4 st',v:64},{l:'5 st',v:85},{l:'7 st',v:106},{l:'12 st',v:127}];
+// Legenda del knob WAVE, come sul pannello: triangolo, dente di sega, quadra, impulso stretto.
+// Le posizioni (0 = tutto a sinistra, 1 = tutto a destra) sono ricavate dal disegno del manuale: sono indicative.
+const WAVE_LEGEND = [
+  {n:0,    icon:'tri',    name:'Tri'},
+  {n:0.40, icon:'saw',    name:'Saw'},
+  {n:0.70, icon:'square', name:'Square'},
+  {n:1,    icon:'pulse',  name:'Pulse'},
+];
+const ICONS = {
+  tri:    'M-9 4L-4.5 -4L0 4L4.5 -4L9 4',
+  saw:    'M-9 4L0 -4L0 4L9 -4L9 4',
+  square: 'M-10 4L-10 -4L-5 -4L-5 4L0 4L0 -4L5 -4L5 4L10 4',
+  pulse:  'M-9 4L-9 -4L-6.5 -4L-6.5 4L0 4L0 -4L2.5 -4L2.5 4L9 4',
+};
+
+const K = (id, label, cc, def, extra = {}) => ({id, label, type:'knob', cc, def, max:127, ...extra});
+const C = (id, label, cc, options, def)     => ({id, label, type:'choice', cc, options, def});
+// Selettore a discesa: utile per liste lunghe (divisori di clock, pattern arp) dove i pulsanti sarebbero troppi.
+const SEL = (id, label, cc, options, def)   => ({id, label, type:'select', cc, options, def});
+
+const DEFS = [
+  // Modulazione
+  K('lfoRate','Rate',3,40,{aria:'LFO rate'}),
+  K('lfoAmt','Amount',6,0,{aria:'Modulation amount'}),
+  C('lfoSource','Source',68,[{l:'Tri',v:0},{l:'Sq',v:16},{l:'Saw',v:32},{l:'Ramp',v:48},{l:'F.Env',v:64},{l:'Osc 2',v:80}],0),
+  C('lfoDest','Destination',69,[{l:'Pitch',v:0},{l:'Filt',v:16},{l:'Wave',v:32},{l:'Osc 2',v:48}],0),
+  // Oscillatori
+  C('osc1Oct','Octave',74,OCT,32),
+  K('osc1Wave','Wave',9,64,{aria:'Oscillator 1 wave', legend:WAVE_LEGEND}),
+  K('osc1Level','Level',15,100,{aria:'Oscillator 1 level'}),
+  C('osc2Oct','Octave',75,OCT,32),
+  K('osc2Freq','Freq',10,64,{aria:'Oscillator 2 frequency'}),
+  K('osc2Wave','Wave',11,64,{aria:'Oscillator 2 wave', legend:WAVE_LEGEND}),
+  K('osc2Level','Level',16,0,{aria:'Oscillator 2 level'}),
+  C('sync','Sync 1-2',77,OFFON,0),
+  C('glideOn','Glide',65,OFFON,0),
+  K('glideRate','Glide rate',5,0),
+  // Filtro (cutoff a 14 bit: CC19 MSB + CC51 LSB)
+  K('cutoff','Cutoff',19,12000,{max:16383,lsb:51}),
+  K('reso','Resonance',21,0),
+  K('kb','KB amount',22,64),
+  K('egAmt','EG amount',27,64),
+  K('overload','Overload',18,0),
+  // Envelope filtro
+  K('fA','Attack',23,0,{aria:'Filter envelope attack'}),
+  K('fD','Decay',24,64,{aria:'Filter envelope decay'}),
+  K('fS','Sustain',25,64,{aria:'Filter envelope sustain'}),
+  K('fR','Release',26,30,{aria:'Filter envelope release'}),
+  // Envelope ampli
+  K('aA','Attack',28,0,{aria:'Amp envelope attack'}),
+  K('aD','Decay',29,64,{aria:'Amp envelope decay'}),
+  K('aS','Sustain',30,127,{aria:'Amp envelope sustain'}),
+  K('aR','Release',31,30,{aria:'Amp envelope release'}),
+];
+// Parametri "avanzati": globali (Master Mode) o dell'arpeggiatore. Non fanno parte dei quattro
+// pannelli principali del synth, ma hanno comunque un CC documentato nel manuale.
+const CLOCKDIV = [
+  {l:'1/32',v:0},{l:'1/32 dot',v:8},{l:'1/16',v:16},{l:'1/16 dot',v:24},{l:'1/8',v:32},{l:'1/8 dot',v:40},
+  {l:'1/4',v:48},{l:'1/4 dot',v:56},{l:'1/2',v:64},{l:'1/2 dot',v:72},{l:'Whole',v:80},
+  {l:'Whole+1/4',v:88},{l:'Whole+1/2',v:96},{l:'Whole+1/2 dot',v:104},{l:'Whole+Whole',v:112},
+];
+const FVELSENS = [
+  {l:'-8',v:0},{l:'-7',v:12},{l:'-6',v:19},{l:'-5',v:26},{l:'-4',v:33},{l:'-3',v:40},{l:'-2',v:47},{l:'-1',v:54},
+  {l:'0',v:61},{l:'+1',v:68},{l:'+2',v:75},{l:'+3',v:82},{l:'+4',v:89},{l:'+5',v:96},{l:'+6',v:103},{l:'+7',v:110},{l:'+8',v:117},
+];
+const ADV_DEFS = [
+  // Modulazione (mod matrix estesa)
+  C('modSrc5','Mod source 5',104,[{l:'Filt',v:0},{l:'S&H',v:64}],0),
+  C('modSrc6','Mod source 6',105,[{l:'Osc 2',v:0},{l:'Noise',v:64}],0),
+  C('modDest2','Mod dest 2',106,[{l:'Off',v:0},{l:'Pitch',v:25},{l:'Filt',v:50},{l:'Wave',v:75},{l:'Osc 2',v:100}],0),
+  SEL('lfoSyncSrc','LFO sync source',102,[{l:'Internal',v:0},{l:'MIDI clock',v:64}],0),
+  SEL('lfoSyncDiv','LFO clock divider',103,CLOCKDIV,64),
+  // Pitch bend range. The panel only offers 7 fixed semitone values (manual, "PITCH BEND" menu);
+  // the CC table gives no exact breakpoints for these two CCs, so the 7 steps are spaced evenly
+  // across 0-127. Treat the semitone labels as approximate, not as an official Moog mapping.
+  C('pbUp','Pitch bend up',107,PB_STEPS,21),
+  C('pbDn','Pitch bend down',108,PB_STEPS,21),
+  // Filtro avanzato
+  C('filtPoles','Filter poles',109,[{l:'1',v:0},{l:'2',v:32},{l:'3',v:64},{l:'4',v:96}],96),
+  SEL('filtVel','Filter velocity sens',110,FVELSENS,61),
+  // Envelope avanzato
+  C('egrRelOn','EGR release',111,OFFON,0),
+  C('egrLegato','EGR legato',112,[{l:'On',v:0},{l:'Off',v:43},{l:'Reset',v:86}],0),
+  // Tastiera e uscita
+  C('kbPriority','Keyboard priority',88,[{l:'Global',v:0},{l:'Low',v:32},{l:'High',v:64},{l:'Last',v:96}],96),
+  K('volume','Volume',7,100,{aria:'Master volume'}),
+  // Arpeggiatore
+  C('arpEnable','Arpeggiator',113,OFFON,0),
+  C('arpRun','Run/Stop',90,OFFON,0),
+  K('arpRate','Clock rate',4,64,{aria:'Arpeggiator clock rate'}),
+  C('arpClkSrc','Clock source',114,[{l:'Internal',v:0},{l:'LFO',v:43},{l:'MIDI',v:86}],0),
+  SEL('arpClkDiv','Clock divider',115,CLOCKDIV,64),
+  C('arpRange','Octave range',116,[{l:'-3',v:0},{l:'-2',v:19},{l:'-1',v:38},{l:'0',v:57},{l:'+1',v:71},{l:'+2',v:90},{l:'+3',v:109}],57),
+  C('arpPattern','Pattern',117,[{l:'Up',v:0},{l:'Down',v:43},{l:'Order',v:86}],0),
+  C('arpMode','Mode',118,[{l:'Loop',v:0},{l:'Back/forth',v:43},{l:'Once',v:86}],0),
+  C('arpLatchEn','Latch enable',119,OFFON,0),
+  C('arpLatch','Latch/unlatch',91,OFFON,0),
+];
+const ALL_DEFS = DEFS.concat(ADV_DEFS);
+const byId = Object.fromEntries(ALL_DEFS.map(d => [d.id, d]));
+
+const ADV_LAYOUT = [
+  {cls:'row-c', groups:[
+    {title:'Mod matrix (extra)', accent:'teal', subs:[{cols:2, items:['modSrc5','modSrc6','modDest2']}]},
+    {title:'LFO sync', accent:'teal', subs:[{cols:2, items:['lfoSyncSrc','lfoSyncDiv']}]},
+    {title:'Pitch bend', accent:'teal', subs:[{cols:2, items:['pbUp','pbDn']}]},
+  ]},
+  {cls:'row-c', groups:[
+    {title:'Filter (advanced)', accent:'teal', subs:[{cols:2, items:['filtPoles','filtVel']}]},
+    {title:'Envelope (advanced)', accent:'teal', subs:[{cols:2, items:['egrRelOn','egrLegato']}]},
+    {title:'Keyboard & output', accent:'teal', subs:[{cols:2, items:['kbPriority','volume']}]},
+  ]},
+  {cls:'row-c', groups:[
+    {title:'Arpeggiator', accent:'teal', subs:[{cols:2, items:['arpEnable','arpRun','arpRate','arpClkSrc']}]},
+    {title:'Arp. clock & range', accent:'teal', subs:[{cols:2, items:['arpClkDiv','arpRange']}]},
+    {title:'Arp. pattern & latch', accent:'teal', subs:[{cols:2, items:['arpPattern','arpMode','arpLatchEn','arpLatch']}]},
+  ]},
+];
+
+const LAYOUT = [
+  {cls:'row-a', groups:[
+    {title:'Modulation', accent:'blue', subs:[{cols:4, items:['lfoSource','lfoDest','lfoRate','lfoAmt']}]},
+    {title:'Oscillators', accent:'orange', subs:[
+      {title:'Osc 1', cols:3, items:['osc1Oct','osc1Wave','osc1Level']},
+      {title:'Osc 2', cols:4, items:['osc2Oct','osc2Freq','osc2Wave','osc2Level']},
+      {title:'Sync & glide', cols:2, items:['sync','glideOn','glideRate']},
+    ]},
+  ]},
+  {cls:'row-b', groups:[
+    {title:'Filter', accent:'purple', subs:[{cols:2, items:['cutoff','reso']},{cols:3, items:['kb','egAmt','overload']}]},
+    {title:'Filter envelope', accent:'green', graph:['fA','fD','fS','fR'], subs:[{cols:4, items:['fA','fD','fS','fR']}]},
+    {title:'Amp envelope',   accent:'green', graph:['aA','aD','aS','aR'], subs:[{cols:4, items:['aA','aD','aS','aR']}]},
+  ]},
+];
+
+/* ------------------------------------------------------------------
+   Utilità
+------------------------------------------------------------------- */
+const $ = id => document.getElementById(id);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) k === 'class' ? (e.className = v) : e.setAttribute(k, v);
+  e.append(...kids);
+  return e;
+}
+function arc(cx, cy, r, a0, a1){
+  if (a1 - a0 < 0.6) return '';
+  const p = a => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+
+/* ------------------------------------------------------------------
+   Stato e controlli
+------------------------------------------------------------------- */
+const state = {};                 // id -> valore grezzo (knob: 0..max, choice: valore CC)
+const controls = {};              // id -> {el, set(raw), get()}
+const ccMap = new Map();          // cc -> {def, part:'one'|'msb'|'lsb'}
+let graphs = [];
+
+function polar(c, a, r){
+  return [c + r * Math.sin(a * Math.PI / 180), c - r * Math.cos(a * Math.PI / 180)];
+}
+
+function createKnob(def){
+  const L = def.legend, S = L ? 116 : 80, c = S / 2;
+  let cur = def.def, drag = null;
+  const root = h('div', {class:'ctl knob' + (L ? ' wide' : '')});
+  const body = h('div', {class:'knob-body', tabindex:'0', role:'slider',
+    'aria-label': def.aria || def.label, 'aria-valuemin':'0', 'aria-valuemax':'127'});
+  const legendSvg = !L ? '' : L.map(m => {
+    const a = -135 + 270 * m.n;
+    const [x, y] = polar(c, a, 47), [x0, y0] = polar(c, a, 38.5), [x1, y1] = polar(c, a, 41.5);
+    return `<line class="tick" x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}"/>` +
+           `<g class="lg" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><path d="${ICONS[m.icon]}"/></g>`;
+  }).join('');
+  body.innerHTML =
+    `<svg viewBox="0 0 ${S} ${S}" width="${S * 0.9}" height="${S * 0.9}" aria-hidden="true">
+       <path class="trk" d="${arc(c,c,34,-135,135)}"/>
+       ${legendSvg}
+       <path class="val" d=""/>
+       <circle class="cap" cx="${c}" cy="${c}" r="25"/>
+       <g class="ptr"><line x1="${c}" y1="${c - 21}" x2="${c}" y2="${c - 10}"/></g>
+     </svg>`;
+  const valPath = body.querySelector('.val'), ptr = body.querySelector('.ptr');
+  const legendEls = [...body.querySelectorAll('.lg')];
+  const num = h('div', {class:'num'});
+  const zone = L ? h('div', {class:'zone'}) : null;
+  root.append(body, h('div', {class:'lbl'}, def.label), num);
+  if (zone) root.append(zone);
+
+  const shown = raw => Math.round(raw * 127 / def.max);
+  function paint(){
+    const n = cur / def.max, ang = -135 + 270 * n;
+    valPath.setAttribute('d', arc(c, c, 34, -135, ang));
+    ptr.setAttribute('transform', `rotate(${ang.toFixed(1)} ${c} ${c})`);
+    num.textContent = shown(cur);
+    body.setAttribute('aria-valuenow', shown(cur));
+    if (!L) return;
+    let best = 0;
+    L.forEach((m, i) => { if (Math.abs(n - m.n) < Math.abs(n - L[best].n)) best = i; });
+    const near = Math.abs(n - L[best].n) <= 0.07;
+    legendEls.forEach((g, i) => g.classList.toggle('hit', near && i === best));
+    let txt;
+    if (near) txt = L[best].name;
+    else {
+      let i = 0;
+      while (i < L.length - 2 && n > L[i + 1].n) i++;
+      txt = L[i].name + ' › ' + L[i + 1].name;
+    }
+    zone.textContent = txt;
+    body.setAttribute('aria-valuetext', shown(cur) + ', ' + txt);
+  }
+  function user(raw){
+    raw = clamp(Math.round(raw), 0, def.max);
+    if (raw === cur) return;
+    cur = raw; paint(); onUserChange(def, cur);
+  }
+
+  body.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    body.setPointerCapture(e.pointerId);
+    drag = {y:e.clientY, raw:cur};
+    body.classList.add('active'); body.focus(); e.preventDefault();
+  });
+  body.addEventListener('pointermove', e => {
+    if (!drag) return;
+    user(drag.raw + (drag.y - e.clientY) / (e.shiftKey ? 700 : 200) * def.max);
+  });
+  const end = () => { drag = null; body.classList.remove('active'); };
+  body.addEventListener('pointerup', end);
+  body.addEventListener('pointercancel', end);
+  body.addEventListener('wheel', e => {
+    e.preventDefault();
+    user(cur + (e.deltaY < 0 ? 1 : -1) * (def.max / 127) * (e.shiftKey ? 1 : 3));
+  }, {passive:false});
+  body.addEventListener('dblclick', () => user(def.def));
+  body.addEventListener('keydown', e => {
+    const s = def.max / 127;
+    const step = {ArrowUp:s, ArrowRight:s, ArrowDown:-s, ArrowLeft:-s, PageUp:10*s, PageDown:-10*s}[e.key];
+    if (e.key === 'Home') user(0);
+    else if (e.key === 'End') user(def.max);
+    else if (step) user(cur + step);
+    else return;
+    e.preventDefault();
+  });
+
+  paint();
+  return {el:root, get:() => cur, set(raw){ cur = clamp(Math.round(raw), 0, def.max); paint(); }};
+}
+
+function createChoice(def){
+  let cur = def.def;
+  const root = h('div', {class:'ctl choice'});
+  const seg = h('div', {class:'seg', role:'radiogroup', 'aria-label':def.label});
+  const btns = def.options.map(o => {
+    const b = h('button', {type:'button', role:'radio', 'aria-checked':'false'}, o.l);
+    b.addEventListener('click', () => { if (o.v !== cur) { cur = o.v; paint(); onUserChange(def, cur); } });
+    seg.append(b);
+    return b;
+  });
+  root.append(h('div', {class:'lbl', style:'text-align:left'}, def.label), seg);
+  const nearest = v => def.options.reduce((a, o) => Math.abs(o.v - v) < Math.abs(a.v - v) ? o : a).v;
+  function paint(){ def.options.forEach((o, i) => btns[i].setAttribute('aria-checked', String(o.v === cur))); }
+  paint();
+  return {el:root, get:() => cur, set(v){ cur = nearest(v); paint(); }};
+}
+
+function createSelect(def){
+  let cur = def.def;
+  const root = h('div', {class:'ctl choice'});
+  const sel = h('select', {'aria-label':def.label});
+  def.options.forEach((o, i) => sel.add(new Option(o.l, i)));
+  sel.addEventListener('change', () => {
+    const v = def.options[+sel.value].v;
+    if (v !== cur){ cur = v; onUserChange(def, cur); }
+  });
+  root.append(h('div', {class:'lbl', style:'text-align:left'}, def.label), sel);
+  const nearestIdx = v => def.options.reduce((bi, o, i) => Math.abs(o.v - v) < Math.abs(def.options[bi].v - v) ? i : bi, 0);
+  function paint(){ sel.value = String(nearestIdx(cur)); }
+  paint();
+  return {el:root, get:() => cur, set(v){ cur = def.options[nearestIdx(v)].v; paint(); }};
+}
+
+let graphSeq = 0;
+function makeGraph(ids){
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const gid = 'envGrad' + (graphSeq++);
+  svg.setAttribute('viewBox', '0 0 220 90');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('class', 'env-graph');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Envelope shape');
+  const gridLines = [22, 38, 54, 70].map(y => `<line class="eg-grid" x1="6" y1="${y}" x2="214" y2="${y}"/>`).join('');
+  svg.innerHTML =
+    `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+       <stop class="eg-stop-a" offset="0%"/><stop class="eg-stop-b" offset="100%"/>
+     </linearGradient></defs>
+     <g>${gridLines}</g>
+     <line class="eg-base" x1="6" y1="82" x2="214" y2="82"/>
+     <polygon fill="url(#${gid})" points=""/>
+     <polyline points=""/>
+     <circle class="eg-pt eg-pt-a" r="3"/>
+     <circle class="eg-pt eg-pt-d" r="3"/>
+     <circle class="eg-pt eg-pt-r" r="3"/>`;
+  graphs.push({svg, ids});
+  return svg;
+}
+function paintGraphs(){
+  for (const {svg, ids:[a, d, s, r]} of graphs){
+    const w = v => 6 + state[v] / 127 * 50;
+    const base = 82, top = 10, sy = base - state[s] / 127 * (base - top);
+    const x1 = 8 + w(a), x2 = x1 + w(d), x3 = x2 + 26, x4 = x3 + w(r);
+    const pts = `8,${base} ${x1},${top} ${x2},${sy.toFixed(1)} ${x3},${sy.toFixed(1)} ${x4},${base}`;
+    svg.querySelector('polyline').setAttribute('points', pts);
+    svg.querySelector('polygon').setAttribute('points', pts);
+    const setPt = (cls, x, y) => { const el = svg.querySelector(cls); el.setAttribute('cx', x); el.setAttribute('cy', y); };
+    setPt('.eg-pt-a', x1, top);
+    setPt('.eg-pt-d', x2, sy.toFixed(1));
+    setPt('.eg-pt-r', x4, base);
+  }
+}
+
+function buildControls(defs){
+  for (const def of defs){
+    state[def.id] = def.def;
+    controls[def.id] = def.type === 'knob' ? createKnob(def) : def.type === 'select' ? createSelect(def) : createChoice(def);
+    if (def.lsb !== undefined){ ccMap.set(def.cc, {def, part:'msb'}); ccMap.set(def.lsb, {def, part:'lsb'}); }
+    else ccMap.set(def.cc, {def, part:'one'});
+  }
+}
+function buildLayout(mount, layout){
+  for (const row of layout){
+    const r = h('div', {class:'row ' + row.cls});
+    for (const g of row.groups){
+      const sec = h('section', {class:'group' + (g.accent ? ' accent-' + g.accent : '')}, h('h2', {}, g.title));
+      if (g.graph) sec.append(makeGraph(g.graph));
+      const subs = h('div', {class:'subs'});
+      for (const s of g.subs){
+        const box = h('div', {class:'sub'});
+        if (s.title) box.append(h('h3', {}, s.title));
+        const ctls = h('div', {class:'ctls', style:'--cols:' + (s.cols || 4)});
+        for (const id of s.items) ctls.append(controls[id].el);
+        box.append(ctls); subs.append(box);
+      }
+      sec.append(subs); r.append(sec);
+    }
+    mount.append(r);
+  }
+}
+function buildPanel(){
+  buildControls(ALL_DEFS);
+  buildLayout($('panel'), LAYOUT);
+  buildLayout($('advPanel'), ADV_LAYOUT);
+  paintGraphs();
+}
+
+/* ------------------------------------------------------------------
+   Invio MIDI (coalescato a ogni frame, senza duplicati)
+------------------------------------------------------------------- */
+let midi = null, inPort = null, outPort = null, manualIn = false, manualOut = false;
+let chOut = 1, chIn = 0;                   // chIn 0 = tutti i canali
+let model = 'lp', manualModel = false, portCount = 0;
+const savedPorts = {in:'', out:''};        // nomi delle ultime porte scelte a mano
+const pending = new Map(), lastSent = new Map();
+let flushScheduled = false;
+
+function onUserChange(def, raw){
+  state[def.id] = raw;
+  emit(def, raw);
+  paintGraphs();
+  scheduleSave();
+  if (!outPort) say('No MIDI Out selected: the change doesn’t reach the synth.');
+}
+function emit(def, raw){
+  if (def.lsb !== undefined){ queue(def.cc, raw >> 7); queue(def.lsb, raw & 127); }
+  else queue(def.cc, raw);
+}
+function queue(cc, val){
+  if (lastSent.get(cc) === val) return;
+  pending.set(cc, val);
+  if (!flushScheduled){ flushScheduled = true; requestAnimationFrame(flush); }
+}
+function flush(){
+  flushScheduled = false;
+  for (const [cc, val] of pending) sendCC(cc, val);
+  pending.clear();
+}
+function sendCC(cc, val){
+  if (!outPort) return;
+  try { outPort.send([0xB0 | (chOut - 1), cc, val]); }
+  catch (err) { say('MIDI send error: ' + err.message); return; }
+  lastSent.set(cc, val);
+  log('OUT', chOut, cc, val);
+}
+function sendAll(){
+  if (!outPort){ say('Select a MIDI Out port first.'); return; }
+  lastSent.clear();
+  for (const def of ALL_DEFS) emit(def, state[def.id]);
+  say('All parameters sent to the synth.');
+}
+
+/* ------------------------------------------------------------------
+   Ricezione MIDI
+------------------------------------------------------------------- */
+function onMidi(e){
+  const [st, d1, d2] = e.data;
+  if (st >= 0xF8) return;                                // real-time messages (clock, active sensing): ignored
+  const type = st & 0xF0, ch = (st & 15) + 1;
+  if (type !== 0xB0) return;
+  if (chIn && ch !== chIn) return;
+  log('IN', ch, d1, d2);
+  const hit = ccMap.get(d1);
+  if (!hit) return;
+  const {def, part} = hit;
+  let raw = d2;
+  if (part === 'msb') raw = (d2 << 7) | (state[def.id] & 127);
+  if (part === 'lsb') raw = (state[def.id] & 0x3F80) | d2;
+  lastSent.set(d1, d2);                                  // the synth already has this value
+  controls[def.id].set(raw);
+  state[def.id] = controls[def.id].get();
+  paintGraphs();
+  scheduleSave();
+}
+
+/* ------------------------------------------------------------------
+   Porte e rilevamento dello strumento
+------------------------------------------------------------------- */
+const isMoog = p => /phatty|moog/i.test((p.name || '') + ' ' + (p.manufacturer || ''));
+
+function setModel(m){
+  if (!MODELS[m]) return;
+  model = m; $('selModel').value = m; scheduleSave(); updateStatus();
+}
+function setIn(p){
+  if (inPort) inPort.onmidimessage = null;
+  inPort = p;
+  if (p) p.onmidimessage = onMidi;
+}
+function setOut(p){ outPort = p; lastSent.clear(); pending.clear(); }
+
+function fill(sel, ports, currentId){
+  sel.replaceChildren(new Option('None', ''));
+  for (const p of ports) sel.add(new Option(p.name, p.id));
+  sel.value = ports.some(p => p.id === currentId) ? currentId : '';
+}
+function refreshPorts(){
+  const ins  = [...midi.inputs.values()].filter(p => p.state === 'connected');
+  const outs = [...midi.outputs.values()].filter(p => p.state === 'connected');
+  portCount = ins.length + outs.length;
+  if (inPort  && !ins.some(p => p.id === inPort.id))   { setIn(null);  manualIn = false; }
+  if (outPort && !outs.some(p => p.id === outPort.id)) { setOut(null); manualOut = false; }
+  if (!inPort  && !manualIn)  { const m = ins.find(isMoog)  || ins.find(p => savedPorts.in  && p.name === savedPorts.in);  if (m) setIn(m); }
+  if (!outPort && !manualOut) { const m = outs.find(isMoog) || outs.find(p => savedPorts.out && p.name === savedPorts.out); if (m) setOut(m); }
+  if (!manualModel){
+    const n = (inPort && inPort.name) || (outPort && outPort.name) || '';
+    if (/slim/i.test(n)) setModel('sp'); else if (/little/i.test(n)) setModel('lp');
+  }
+  fill($('selIn'), ins, inPort && inPort.id);
+  fill($('selOut'), outs, outPort && outPort.id);
+  updateStatus();
+}
+function updateStatus(){
+  const led = $('led'), txt = $('statusText'), M = MODELS[model].name;
+  const named = (inPort && isMoog(inPort)) ? inPort : (outPort && isMoog(outPort)) ? outPort : null;
+  led.className = 'led';
+  if (inPort && outPort){
+    led.classList.add('on');
+    txt.textContent = named ? M + ' connected: ' + named.name : 'Ports selected: ' + inPort.name + ' / ' + outPort.name + '. Model: ' + M + '.';
+  } else if (inPort || outPort){
+    led.classList.add('on');
+    txt.textContent = 'Model ' + M + ': missing MIDI ' + (inPort ? 'Out' : 'In') + ' port.';
+  } else {
+    txt.textContent = 'No instrument detected. Connect the synth via USB and power it on.';
+  }
+  $('portHint').hidden = !(portCount > 0 && !inPort && !outPort);
+}
+async function initMidi(){
+  if (!navigator.requestMIDIAccess){
+    $('led').className = 'led err';
+    $('statusText').textContent = 'This browser doesn’t support Web MIDI. Open this file in Chrome or Edge.';
+    return;
+  }
+  try {
+    midi = await navigator.requestMIDIAccess({sysex:false});
+  } catch (err){
+    $('led').className = 'led err';
+    $('statusText').textContent = 'MIDI access denied. Allow MIDI in the site settings and reload the page.';
+    return;
+  }
+  midi.onstatechange = refreshPorts;
+  refreshPorts();
+}
+
+/* ------------------------------------------------------------------
+   Messaggi, log, salvataggio, preset
+------------------------------------------------------------------- */
+function say(t){ $('msg').textContent = t; }
+
+const logLines = []; let logScheduled = false;
+function log(dir, ch, cc, val){
+  const hit = ccMap.get(cc);
+  const name = hit ? hit.def.label + (hit.part === 'lsb' ? ' (fine)' : '') : '—';
+  logLines.unshift(`${dir.padEnd(3)} ch${String(ch).padStart(2)}  CC${String(cc).padStart(3)} = ${String(val).padStart(3)}  ${name}`);
+  if (logLines.length > 80) logLines.length = 80;
+  if (!logScheduled){
+    logScheduled = true;
+    requestAnimationFrame(() => { logScheduled = false; $('logBox').textContent = logLines.join('\n'); });
+  }
+}
+
+const LS_KEY = 'phatty-editor-v1';
+let saveTimer;
+function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify({values:state, chOut, chIn, model, ports:savedPorts})); } catch (_) {}
+}
+function applyValues(values){
+  for (const def of ALL_DEFS){
+    const v = values[def.id];
+    if (typeof v !== 'number' || !isFinite(v)) continue;
+    controls[def.id].set(v);
+    state[def.id] = controls[def.id].get();
+  }
+  paintGraphs();
+}
+function load(){
+  try {
+    const o = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+    if (!o) return;
+    if (o.model && MODELS[o.model]){ manualModel = true; model = o.model; }
+    if (o.ports){ savedPorts.in = o.ports.in || ''; savedPorts.out = o.ports.out || ''; }
+    if (o.values) applyValues(o.values);
+    if (o.chOut >= 1 && o.chOut <= 16) chOut = o.chOut;
+    if (o.chIn >= 0 && o.chIn <= 16) chIn = o.chIn;
+  } catch (_) {}
+}
+const INIT_PRESET = {
+  model: 'lp', channel: 1,
+  values: {
+    lfoRate:52, lfoAmt:32, lfoSource:0, lfoDest:0,
+    osc1Oct:64, osc1Wave:89, osc1Level:127,
+    osc2Oct:48, osc2Freq:64, osc2Wave:46, osc2Level:0,
+    sync:0, glideOn:0, glideRate:0,
+    cutoff:11923, reso:0, kb:64, egAmt:64, overload:0,
+    fA:0, fD:127, fS:127, fR:80,
+    aA:0, aD:127, aS:127, aR:71,
+    modSrc5:0, modSrc6:0, modDest2:0,
+    lfoSyncSrc:0, lfoSyncDiv:40,
+    pbUp:21, pbDn:21, filtPoles:96, filtVel:61,
+    egrRelOn:0, egrLegato:0, kbPriority:96, volume:81,
+    arpEnable:64, arpRun:64, arpRate:78, arpClkSrc:0, arpClkDiv:40,
+    arpRange:57, arpPattern:0, arpMode:43, arpLatchEn:0, arpLatch:0
+  }
+};
+function initPreset(){
+  if (!confirm('Reset the editor to the INIT preset, continue?')) return;
+  if (MODELS[INIT_PRESET.model] && INIT_PRESET.model !== model){ manualModel = true; setModel(INIT_PRESET.model); }
+  if (INIT_PRESET.channel >= 1 && INIT_PRESET.channel <= 16){ chOut = INIT_PRESET.channel; $('selChOut').value = chOut; }
+  applyValues(INIT_PRESET.values); save();
+  say('INIT preset loaded' + (outPort ? ' and sent to the synth.' : '.'));
+  if (outPort) sendAll();
+}
+function exportPreset(){
+  const data = {app:'phatty-editor', device:MODELS[model].device, model, channel:chOut, values:{...state}};
+  const a = h('a', {href:URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'})), download:MODELS[model].file});
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  say('Preset exported to ' + MODELS[model].file + '.');
+}
+function importPreset(file){
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const o = JSON.parse(rd.result);
+      if (!o || typeof o.values !== 'object') throw new Error('formato non valido');
+      if (o.model && MODELS[o.model] && o.model !== model){ manualModel = true; setModel(o.model); }
+      applyValues(o.values); save();
+      say('Preset loaded' + (outPort ? ' and sent to the synth.' : '.'));
+      if (outPort) sendAll();
+    } catch (err){ say('Could not read the preset: ' + err.message); }
+  };
+  rd.readAsText(file);
+}
+
+/* ------------------------------------------------------------------
+   Preset library (elenco di preset salvati nel browser)
+------------------------------------------------------------------- */
+const LIB_KEY = 'phatty-editor-library-v1';
+const LIB_VISIBLE = 10; // righe visibili senza scorrere; il numero di preset salvabili non è limitato
+let library = [];
+let libSearchTerm = '';
+function loadLibrary(){
+  try { library = JSON.parse(localStorage.getItem(LIB_KEY) || '[]'); if (!Array.isArray(library)) library = []; }
+  catch (_) { library = []; }
+}
+function saveLibrary(){ try { localStorage.setItem(LIB_KEY, JSON.stringify(library)); } catch (_) {} }
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' ' +
+         d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+}
+function renderLibrary(){
+  const term = libSearchTerm.trim().toLowerCase();
+  const filtered = term ? library.filter(p => (p.name || '').toLowerCase().includes(term)) : library;
+  $('libCount').textContent = library.length + (library.length === 1 ? ' preset saved' : ' presets saved') +
+    (term && filtered.length !== library.length ? ' · ' + filtered.length + ' shown' : '');
+  const tb = $('libBody');
+  tb.replaceChildren();
+  if (!library.length){
+    tb.append(h('tr', {}, h('td', {colspan:'4', class:'empty'}, 'Your library is empty. Name a preset above and click “Save current as new”.')));
+    return;
+  }
+  if (!filtered.length){
+    tb.append(h('tr', {}, h('td', {colspan:'4', class:'empty'}, 'No presets match “' + libSearchTerm.trim() + '”.')));
+    return;
+  }
+  const items = [...filtered].sort((a, b) => b.savedAt - a.savedAt);
+  for (const p of items){
+    const nameInput = h('input', {type:'text', value:p.name, 'aria-label':'Preset name', maxlength:'60'});
+    nameInput.onchange = () => { p.name = nameInput.value.trim() || p.name; saveLibrary(); };
+    const btnLoad = h('button', {class:'btn ghost small', type:'button'}, 'Load');
+    btnLoad.onclick = () => loadFromLibrary(p.id);
+    const btnExp = h('button', {class:'btn ghost small', type:'button'}, 'Export');
+    btnExp.onclick = () => exportFromLibrary(p.id);
+    const btnDel = h('button', {class:'btn ghost small', type:'button'}, 'Delete');
+    btnDel.onclick = () => deleteFromLibrary(p.id);
+    const tr = h('tr', {},
+      h('td', {class:'name'}, nameInput),
+      h('td', {class:'nowrap'}, h('span', {class:'pill ' + (p.model || '')}, MODELS[p.model] ? MODELS[p.model].name : (p.model || '—'))),
+      h('td', {class:'nowrap'}, fmtDate(p.savedAt)),
+      h('td', {class:'nowrap'}, h('div', {class:'acts'}, btnLoad, btnExp, btnDel)));
+    tb.append(tr);
+  }
+}
+function saveCurrentToLibrary(){
+  const name = $('libName').value.trim() || (MODELS[model].name + ' — ' + new Date().toLocaleString());
+  library.unshift({id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), name, model, chOut, values:{...state}, savedAt: Date.now()});
+  saveLibrary(); renderLibrary();
+  $('libName').value = '';
+  say('“' + name + '” saved to the library.');
+}
+function loadFromLibrary(id){
+  const p = library.find(x => x.id === id);
+  if (!p) return;
+  if (p.model && MODELS[p.model] && p.model !== model){ manualModel = true; setModel(p.model); }
+  if (p.chOut >= 1 && p.chOut <= 16){ chOut = p.chOut; $('selChOut').value = chOut; }
+  applyValues(p.values); save();
+  say('“' + p.name + '” loaded' + (outPort ? ' and sent to the synth.' : '.'));
+  if (outPort) sendAll();
+}
+function exportFromLibrary(id){
+  const p = library.find(x => x.id === id);
+  if (!p) return;
+  const data = {app:'phatty-editor', device:MODELS[p.model] ? MODELS[p.model].device : p.model, model:p.model, channel:p.chOut, values:{...p.values}};
+  const fileName = (MODELS[p.model] ? MODELS[p.model].file : 'preset.json').replace('.json', '') + '_' + p.name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '.json';
+  const a = h('a', {href:URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'})), download:fileName});
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  say('“' + p.name + '” exported to ' + fileName + '.');
+}
+function deleteFromLibrary(id){
+  const p = library.find(x => x.id === id);
+  if (!p || !confirm('Delete “' + p.name + '” from the library? This does not affect any exported .json file.')) return;
+  library = library.filter(x => x.id !== id);
+  saveLibrary(); renderLibrary();
+}
+function exportAllFromLibrary(){
+  if (!library.length){ say('Your library is empty — nothing to export.'); return; }
+  const data = {
+    app: 'phatty-editor-library',
+    exportedAt: new Date().toISOString(),
+    presets: library.map(p => ({
+      name: p.name,
+      model: p.model,
+      device: MODELS[p.model] ? MODELS[p.model].device : p.model,
+      channel: p.chOut,
+      savedAt: p.savedAt,
+      values: {...p.values}
+    }))
+  };
+  const fileName = 'phatty_library_export_' + new Date().toISOString().slice(0, 10) + '.json';
+  const a = h('a', {href:URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'})), download:fileName});
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  say('Exported ' + library.length + ' preset' + (library.length === 1 ? '' : 's') + ' to ' + fileName + '.');
+}
+function deleteAllFromLibrary(){
+  if (!library.length){ say('Your library is already empty.'); return; }
+  if (!confirm('Delete all ' + library.length + ' presets from the library? This does not affect any exported .json files.')) return;
+  library = [];
+  saveLibrary(); renderLibrary();
+  say('Library cleared.');
+}
+function importLibraryData(data, fallbackName){
+  const baseName = fallbackName ? fallbackName.replace(/\.json$/i, '') : 'Imported preset';
+  if (data && data.app === 'phatty-editor-library' && Array.isArray(data.presets)){
+    let n = 0;
+    for (const p of data.presets){
+      if (!p || !p.values) continue;
+      library.unshift({
+        id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        name: p.name || baseName,
+        model: MODELS[p.model] ? p.model : model,
+        chOut: (p.channel >= 1 && p.channel <= 16) ? p.channel : chOut,
+        values: {...p.values},
+        savedAt: p.savedAt || Date.now()
+      });
+      n++;
+    }
+    return n;
+  }
+  if (data && data.values){
+    library.unshift({
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      name: data.name || baseName,
+      model: MODELS[data.model] ? data.model : model,
+      chOut: (data.channel >= 1 && data.channel <= 16) ? data.channel : chOut,
+      values: {...data.values},
+      savedAt: Date.now()
+    });
+    return 1;
+  }
+  return 0;
+}
+function importLibraryFile(fileList){
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  let remaining = files.length, addedTotal = 0;
+  const errors = [];
+  files.forEach(file => {
+    const rd = new FileReader();
+    const finish = () => {
+      remaining--;
+      if (remaining === 0){
+        saveLibrary(); renderLibrary();
+        let msg = addedTotal + ' preset' + (addedTotal === 1 ? '' : 's') + ' imported into the library.';
+        if (errors.length) msg += ' Could not read: ' + errors.join(', ') + '.';
+        say(msg);
+      }
+    };
+    rd.onload = () => {
+      try { addedTotal += importLibraryData(JSON.parse(rd.result), file.name); }
+      catch (err){ errors.push(file.name); }
+      finish();
+    };
+    rd.onerror = () => { errors.push(file.name); finish(); };
+    rd.readAsText(file);
+  });
+}
+
+/* ------------------------------------------------------------------
+   Avvio
+------------------------------------------------------------------- */
+function sendProgramChange(n){
+  if (!outPort){ say('Select a MIDI Out port first.'); return; }
+  n = clamp(Math.round(n), 0, 99);
+  $('prgNum').value = n;
+  try {
+    outPort.send([0xC0 | (chOut - 1), n]);
+    log('OUT', chOut, 'PC', n);
+    say('Program Change ' + n + ' sent: the synth recalls that preset. Unsaved edits are lost.');
+  } catch (err){ say('MIDI send error: ' + err.message); }
+}
+
+function init(){
+  buildPanel();
+  load();
+
+  const selModel = $('selModel');
+  for (const [k, v] of Object.entries(MODELS)) selModel.add(new Option(v.name, k));
+  selModel.value = model;
+  selModel.onchange = () => { manualModel = true; setModel(selModel.value); };
+
+  const selChOut = $('selChOut'), selChIn = $('selChIn');
+  for (let i = 1; i <= 16; i++) selChOut.add(new Option(i, i));
+  selChIn.add(new Option('All', 0));
+  for (let i = 1; i <= 16; i++) selChIn.add(new Option(i, i));
+  selChOut.value = chOut; selChIn.value = chIn;
+  selChOut.onchange = () => { chOut = +selChOut.value; lastSent.clear(); scheduleSave(); };
+  selChIn.onchange  = () => { chIn  = +selChIn.value;  scheduleSave(); };
+
+  $('selIn').onchange = e => {
+    manualIn = true;
+    setIn(e.target.value ? midi.inputs.get(e.target.value) : null);
+    savedPorts.in = inPort ? inPort.name : ''; scheduleSave(); updateStatus();
+  };
+  $('selOut').onchange = e => {
+    manualOut = true;
+    setOut(e.target.value ? midi.outputs.get(e.target.value) : null);
+    savedPorts.out = outPort ? outPort.name : ''; scheduleSave(); updateStatus();
+  };
+
+  $('btnSendAll').onclick = sendAll;
+  $('btnExport').onclick = exportPreset;
+  $('btnImport').onclick = () => $('fileImport').click();
+  $('fileImport').onchange = e => { if (e.target.files[0]) importPreset(e.target.files[0]); e.target.value = ''; };
+
+  loadLibrary(); renderLibrary();
+  $('btnInitPreset').onclick = initPreset;
+  $('btnLibSave').onclick = saveCurrentToLibrary;
+  $('libName').onkeydown = e => { if (e.key === 'Enter') saveCurrentToLibrary(); };
+  const libSearch = $('libSearch');
+  libSearch.oninput = () => { libSearchTerm = libSearch.value; renderLibrary(); };
+  libSearch.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); libSearchTerm = libSearch.value; renderLibrary(); } };
+  $('btnLibExportAll').onclick = exportAllFromLibrary;
+  $('btnLibDeleteAll').onclick = deleteAllFromLibrary;
+  $('btnLibImportAll').onclick = () => $('fileLibImport').click();
+  $('fileLibImport').onchange = e => { importLibraryFile(e.target.files); e.target.value = ''; };
+
+  const libMini = $('libMini'), libToggle = $('libToggle'), libDropdown = $('libDropdown');
+  function positionLibDropdown(){
+    const r = libToggle.getBoundingClientRect();
+    const margin = 8;
+    const width = Math.min(800, window.innerWidth - 24);
+    libDropdown.style.width = width + 'px';
+    let left = r.right - width;
+    left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+    let top = r.bottom + margin;
+    const dh = libDropdown.offsetHeight || 360;
+    if (top + dh > window.innerHeight - 12 && r.top - margin - dh > 12) top = r.top - margin - dh;
+    libDropdown.style.left = left + 'px';
+    libDropdown.style.top = top + 'px';
+  }
+  function setLibOpen(open){
+    if (open){
+      libDropdown.hidden = false;
+      positionLibDropdown();
+    } else {
+      libDropdown.hidden = true;
+    }
+    libMini.dataset.open = open ? 'true' : 'false';
+    libToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  libToggle.onclick = e => { e.stopPropagation(); setLibOpen(libDropdown.hidden); };
+  libDropdown.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', () => setLibOpen(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setLibOpen(false); });
+  window.addEventListener('resize', () => { if (!libDropdown.hidden) positionLibDropdown(); });
+  window.addEventListener('scroll', () => { if (!libDropdown.hidden) positionLibDropdown(); }, true);
+
+  const prgNum = $('prgNum');
+  $('btnPrgPrev').onclick = () => sendProgramChange((+prgNum.value || 0) - 1);
+  $('btnPrgNext').onclick = () => sendProgramChange((+prgNum.value || 0) + 1);
+  $('btnPrgGo').onclick   = () => sendProgramChange(+prgNum.value || 0);
+  initMidi();
+}
+init();
+})();
+
+document.addEventListener('click', e => {
+  const open = document.querySelector('.qr-pop-wrap[open]');
+  if (open && !open.contains(e.target)) open.removeAttribute('open');
+});
+</script>
+</body>
+</html>
